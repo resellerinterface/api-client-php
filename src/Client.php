@@ -23,6 +23,7 @@ class Client
      * Client constructor.
      *
      * @param string $baseUrl
+     * @param string $version
      */
     public function __construct($baseUrl = "https://core.resellerinterface.de/", $version = 'stable')
     {
