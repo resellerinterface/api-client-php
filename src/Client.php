@@ -213,6 +213,8 @@ class Client
             if (is_array($v)) {
                 $return = $this->buildPostArray($v, $return, $newPrefix);
             } else {
+				if( $v === true ) { $v = "true"; }
+	            if( $v === false ) { $v = "false"; }
                 $return[$newPrefix] = $v;
             }
         }
