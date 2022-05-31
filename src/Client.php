@@ -19,14 +19,25 @@ class Client
     const RESPONSE_DOWNLOAD = "RESPONSE_DOWNLOAD";
     const RESPONSE_STREAM = "RESPONSE_STREAM";
 
+    const IP_RESOLVE_V4 = "ipv4";
+    const IP_RESOLVE_V6 = "ipv6";
+    const IP_RESOLVE_ANY = "any";
+
     /**
      * Client constructor.
      *
      * @param string $baseUrl
      * @param string $version
+     * @param array $options Array containing the optional options.
+     *    $options = [
+     *      'ipResolve' => (string) one of IP_RESOLVE_V4|IP_RESOLVE_V6|IP_RESOLVE_ANY
+     *    ]
      */
-    public function __construct($baseUrl = "https://core.resellerinterface.de/", $version = 'stable')
-    {
+    public function __construct(
+        $baseUrl = "https://core.resellerinterface.de/",
+        $version = 'stable',
+        $options = []
+    ) {
         $this->baseUrl = rtrim($baseUrl, '/') . '/';
         if ($version === 'stable' || $version === 'latest') {
             $this->version = $version;
@@ -47,6 +58,36 @@ class Client
         curl_setopt($this->client, CURLOPT_HEADERFUNCTION, "self::headerFunction");
         curl_setopt($this->client, CURLOPT_ENCODING, "");
         curl_setopt($this->client, CURLOPT_USERAGENT, "api-client-php/" . $package['version']);
+
+        $this->setOptions($options);
+    }
+
+    /**
+     * @param array $options
+     * @return void
+     */
+    public function setOptions($options)
+    {
+        if (isset($options['ipResolve'])) {
+            $this->setIpResolve($options['ipResolve']);
+        }
+    }
+
+    /**
+     * @param string $option
+     * @return void
+     */
+    public function setIpResolve($option)
+    {
+        if ($option === self::IP_RESOLVE_V4) {
+            curl_setopt($this->client, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        } else {
+            if ($option === self::IP_RESOLVE_V6) {
+                curl_setopt($this->client, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6);
+            } else {
+                curl_setopt($this->client, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
+            }
+        }
     }
 
     public function __destruct()
@@ -87,9 +128,9 @@ class Client
     public function request($action, $params, $responseType = self::RESPONSE_RESPONSE)
     {
         $action = trim($action, '/');
-        $path   = explode("/", $action);
+        $path = explode("/", $action);
 
-        if ( ! isset($path[0], $path[1])) {
+        if (!isset($path[0], $path[1])) {
             throw new InvalidRequestException("invalid request action");
         }
 
@@ -116,9 +157,8 @@ class Client
                 curl_setopt(
                     $this->client,
                     CURLOPT_HEADERFUNCTION,
-                    static function ($client, $headerLine) use (&$filename, &$filesize)
-                    {
-                        $len    = strlen($headerLine);
+                    static function ($client, $headerLine) use (&$filename, &$filesize) {
+                        $len = strlen($headerLine);
                         $header = explode(':', $headerLine, 2);
                         if (count($header) < 2) {
                             return $len;
@@ -146,7 +186,7 @@ class Client
                     throw new InvalidResponseException('Curl-Error: ' . curl_error($this->client));
                 }
 
-                $finfo    = new finfo(FILEINFO_MIME_TYPE);
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
                 $filetype = $finfo->buffer($response);
 
                 return new ResponseDownload($response, $filename, $filesize, $filetype);
@@ -158,9 +198,8 @@ class Client
                 curl_setopt(
                     $this->client,
                     CURLOPT_HEADERFUNCTION,
-                    static function ($client, $headerLine)
-                    {
-                        $len    = strlen($headerLine);
+                    static function ($client, $headerLine) {
+                        $len = strlen($headerLine);
                         $header = explode(':', $headerLine, 2);
                         if (count($header) < 2) {
                             return $len;
@@ -213,8 +252,12 @@ class Client
             if (is_array($v)) {
                 $return = $this->buildPostArray($v, $return, $newPrefix);
             } else {
-				if( $v === true ) { $v = "true"; }
-	            if( $v === false ) { $v = "false"; }
+                if ($v === true) {
+                    $v = "true";
+                }
+                if ($v === false) {
+                    $v = "false";
+                }
                 $return[$newPrefix] = $v;
             }
         }
