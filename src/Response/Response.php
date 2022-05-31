@@ -65,7 +65,7 @@ class Response implements ArrayAccess
      */
     public function isError()
     {
-        return ! $this->getState() || $this->getState() >= 2000;
+        return !$this->getState() || $this->getState() >= 2000;
     }
 
     /**
