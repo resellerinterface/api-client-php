@@ -83,6 +83,7 @@ class Response implements ArrayAccess
     /**
      * @inheritDoc
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->response[$offset]);
@@ -91,6 +92,7 @@ class Response implements ArrayAccess
     /**
      * @inheritDoc
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->response[$offset];
@@ -99,6 +101,7 @@ class Response implements ArrayAccess
     /**
      * @inheritDoc
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->response[$offset] = $value;
@@ -107,6 +110,7 @@ class Response implements ArrayAccess
     /**
      * @inheritDoc
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->response[$offset]);
