@@ -1,0 +1,13 @@
+# Security Policy
+
+## Supported Versions
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.0.x   | :white_check_mark: |
+
+## Reporting a Vulnerability
+
+Please report security issues to: `security@greenmark-it.de`
+
+Preferred Languages: de,en
