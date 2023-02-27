@@ -26,8 +26,10 @@ class Client
     /**
      * Client constructor.
      *
-     * @param string $baseUrl
-     * @param string $version
+     * @param string $baseUrl The API base URL. Defaults to "https://core.resellerinterface.de/".
+     * Use "https://core-staging.resellerinterface.de/" for the staging sytem API.
+     * @param string $version The API version this client should be using. Can be 'stable' or 'latest'.
+     * Defaults to 'stable'.
      * @param array $options Array containing the optional options.
      *    $options = [
      *      'ipResolve' => (string) one of IP_RESOLVE_V4|IP_RESOLVE_V6|IP_RESOLVE_ANY
@@ -60,6 +62,22 @@ class Client
         curl_setopt($this->client, CURLOPT_USERAGENT, "api-client-php/" . $package['version']);
 
         $this->setOptions($options);
+    }
+
+    /**
+     * @return string The API base URL this client is using.
+     */
+    public function getBaseUrl()
+    {
+        return $this->baseUrl;
+    }
+
+    /**
+     * @return string The API version this client is using. Can be 'stable' or 'latest'.
+     */
+    public function getVersion()
+    {
+        return $this->version;
     }
 
     /**
