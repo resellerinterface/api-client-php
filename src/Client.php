@@ -2,7 +2,6 @@
 
 namespace ResellerInterface\Api;
 
-use finfo;
 use ResellerInterface\Api\Exception\InvalidRequestException;
 use ResellerInterface\Api\Exception\InvalidResponseException;
 use ResellerInterface\Api\Response\Response;
@@ -171,11 +170,12 @@ class Client
             {
                 $filename = null;
                 $filesize = null;
+                $filetype = null;
 
                 curl_setopt(
                     $this->client,
                     CURLOPT_HEADERFUNCTION,
-                    static function ($client, $headerLine) use (&$filename, &$filesize) {
+                    static function ($client, $headerLine) use (&$filename, &$filesize, &$filetype) {
                         $len = strlen($headerLine);
                         $header = explode(':', $headerLine, 2);
                         if (count($header) < 2) {
@@ -193,6 +193,9 @@ class Client
                             )) {
                             $filename = $matches[1];
                         }
+                        if($name === 'content-type') {
+                            $filetype = trim($header[1]);
+                        }
 
                         return $len;
                     }
@@ -203,9 +206,6 @@ class Client
                 if ($response === false) {
                     throw new InvalidResponseException('Curl-Error: ' . curl_error($this->client));
                 }
-
-                $finfo = new finfo(FILEINFO_MIME_TYPE);
-                $filetype = $finfo->buffer($response);
 
                 return new ResponseDownload($response, $filename, $filesize, $filetype);
             }
@@ -227,9 +227,11 @@ class Client
                         if ($name === 'content-length') {
                             header('Content-Length: ' . trim($header[1]));
                         }
+                        if ($name === 'content-type') {
+                            header('Content-Type: ' . trim($header[1]));
+                        }
                         if ($name === 'content-disposition') {
                             header('Content-Description: File Transfer');
-                            header('Content-Type: application/octet-stream');
                             header('Expires: 0');
                             header('Cache-Control: must-revalidate');
                             header('Pragma: public');
