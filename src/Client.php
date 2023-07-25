@@ -56,7 +56,7 @@ class Client
         curl_setopt($this->client, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($this->client, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($this->client, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($this->client, CURLOPT_HEADERFUNCTION, "self::headerFunction");
+        curl_setopt($this->client, CURLOPT_HEADERFUNCTION, [$this, 'headerFunction']);
         curl_setopt($this->client, CURLOPT_ENCODING, "");
         curl_setopt($this->client, CURLOPT_USERAGENT, "api-client-php/" . $package['version']);
 
@@ -202,7 +202,7 @@ class Client
                 );
 
                 $response = curl_exec($this->client);
-                curl_setopt($this->client, CURLOPT_HEADERFUNCTION, "self::headerFunction");
+                curl_setopt($this->client, CURLOPT_HEADERFUNCTION, [$this, 'headerFunction']);
                 if ($response === false) {
                     throw new InvalidResponseException('Curl-Error: ' . curl_error($this->client));
                 }
@@ -244,7 +244,7 @@ class Client
 
                 $response = curl_exec($this->client);
                 curl_setopt($this->client, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($this->client, CURLOPT_HEADERFUNCTION, "self::headerFunction");
+                curl_setopt($this->client, CURLOPT_HEADERFUNCTION, [$this, 'headerFunction']);
                 if ($response === false) {
                     throw new InvalidResponseException('Curl-Error: ' . curl_error($this->client));
                 }
