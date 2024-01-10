@@ -13,6 +13,8 @@ class Client
     private $client = null;
     private $baseUrl = null;
     private $version = null;
+    private $userAgent = null;
+    private $session = null;
 
     const RESPONSE_RESPONSE = "RESPONSE_RESPONSE";
     const RESPONSE_DOWNLOAD = "RESPONSE_DOWNLOAD";
@@ -32,6 +34,7 @@ class Client
      * @param array $options Array containing the optional options.
      *    $options = [
      *      'ipResolve' => (string) one of IP_RESOLVE_V4|IP_RESOLVE_V6|IP_RESOLVE_ANY
+     *      'userAgent' => (string) something like "yourUseragent/1.0.0"
      *    ]
      */
     public function __construct(
@@ -58,8 +61,8 @@ class Client
         curl_setopt($this->client, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($this->client, CURLOPT_HEADERFUNCTION, [$this, 'headerFunction']);
         curl_setopt($this->client, CURLOPT_ENCODING, "");
-        curl_setopt($this->client, CURLOPT_USERAGENT, "api-client-php/" . $package['version']);
 
+        $this->setUserAgent("api-client-php/" . $package['version'] . " php/" . phpversion());
         $this->setOptions($options);
     }
 
@@ -88,6 +91,9 @@ class Client
         if (isset($options['ipResolve'])) {
             $this->setIpResolve($options['ipResolve']);
         }
+        if (isset($options['userAgent'])) {
+            $this->setUserAgent($options['userAgent']);
+        }
     }
 
     /**
@@ -105,6 +111,23 @@ class Client
                 curl_setopt($this->client, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
             }
         }
+    }
+
+    /**
+     * @param string $option
+     *
+     * @return void
+     */
+    public function setUserAgent($option) {
+        $this->userAgent = $option;
+        curl_setopt($this->client, CURLOPT_USERAGENT, $option);
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserAgent() {
+        return $this->userAgent;
     }
 
     public function __destruct()
@@ -294,10 +317,30 @@ class Client
     private function headerFunction($client, $headerLine)
     {
         if (preg_match("/^Set-Cookie:\scoreSID=*([^;]*)/mi", $headerLine, $cookie)) {
+            $this->session = $cookie[1];
             curl_setopt($client, CURLOPT_COOKIE, "coreSID=" . $cookie[1]);
         }
 
         return strlen($headerLine);
     }
 
+    /**
+     * @param string|null $session
+     * @return void
+     */
+    public function setSession($session) {
+        $this->session = $session;
+        if(!$session) {
+            curl_setopt($this->client, CURLOPT_COOKIE, "");
+        } else {
+            curl_setopt($this->client, CURLOPT_COOKIE, "coreSID=" . $session);
+        }
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getSession() {
+        return $this->session;
+    }
 }
